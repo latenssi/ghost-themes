@@ -1,0 +1,33 @@
+name: Journal Latenssi
+
+on:
+  pull_request:
+  push:
+    branches:
+      - latenssi
+    paths:
+      - 'packages/journal-latenssi/**'
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: yarn
+      - run: yarn test:ci --theme journal-latenssi
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v2
+      - run: yarn
+      - run: yarn zip --theme journal-latenssi
+      - name: Deploy theme
+        uses: TryGhost/action-deploy-theme@v1.4.1
+        with:
+          api-url: ${{ secrets.GHOST_ADMIN_API_URL }}
+          api-key: ${{ secrets.GHOST_ADMIN_API_KEY }}
+          file: ./packages/journal-latenssi/dist/journal-latenssi.zip
